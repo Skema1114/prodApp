@@ -1,11 +1,12 @@
-import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_theme.dart';
 import '../../data/models/silo.dart';
 import '../../data/repositories/silo_repository.dart';
+import '../../shared/static_data/cultura.dart';
 import '../../shared/widgets/error_state.dart';
 import '../../shared/widgets/scaffold_secao.dart';
+import '../../shared/widgets/silo_shape.dart';
 
 class SiloDetalheScreen extends StatefulWidget {
   final int idSilo;
@@ -110,37 +111,86 @@ class _SiloDetalheScreenState extends State<SiloDetalheScreen> {
             child: Material(
               type: MaterialType.transparency,
               child: Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(22),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(20),
+                  borderRadius: BorderRadius.circular(22),
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
                       Colors.white,
-                      cor.withValues(alpha: .12),
+                      cor.withValues(alpha: .14),
                     ],
                   ),
                   border: Border.all(color: cor.withValues(alpha: .3)),
-                ),
-                child: Column(
-                  children: [
-                    SizedBox(
-                      height: 200,
-                      child: _GaugeOcupacao(pct: pct, cor: cor),
+                  boxShadow: [
+                    BoxShadow(
+                      color: cor.withValues(alpha: .12),
+                      blurRadius: 16,
+                      offset: const Offset(0, 6),
                     ),
-                    const SizedBox(height: 6),
-                    Text('${(pct * 100).toStringAsFixed(1)}%',
-                        style: TextStyle(
-                          fontSize: 38,
-                          fontWeight: FontWeight.w800,
-                          color: cor,
-                        )),
-                    Text('ocupado',
-                        style: TextStyle(
-                          color: cor.withValues(alpha: .9),
-                          fontWeight: FontWeight.w500,
-                        )),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    SiloShape(
+                      pct: pct,
+                      cor: cor,
+                      grainAsset: Cultura.iconParaProduto(_silo!.produto),
+                      width: 110,
+                      height: 180,
+                    ),
+                    const SizedBox(width: 18),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: cor.withValues(alpha: .15),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Text(_silo!.produto,
+                                style: TextStyle(
+                                  color: cor,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  letterSpacing: .3,
+                                )),
+                          ),
+                          const SizedBox(height: 10),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text('${(pct * 100).toStringAsFixed(1)}',
+                                  style: TextStyle(
+                                    fontSize: 52,
+                                    fontWeight: FontWeight.w800,
+                                    color: cor,
+                                    height: 1,
+                                  )),
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Text(' %',
+                                    style: TextStyle(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w700,
+                                      color: cor,
+                                    )),
+                              ),
+                            ],
+                          ),
+                          Text('ocupado',
+                              style: TextStyle(
+                                color: cor.withValues(alpha: .85),
+                                fontWeight: FontWeight.w500,
+                                fontSize: 13,
+                              )),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -228,62 +278,6 @@ class _InfoLinha extends StatelessWidget {
       ),
     );
   }
-}
-
-/// Gauge semicircular — substitui o termômetro segmentado anterior.
-class _GaugeOcupacao extends StatelessWidget {
-  final double pct;
-  final Color cor;
-  const _GaugeOcupacao({required this.pct, required this.cor});
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      painter: _GaugePainter(pct: pct, cor: cor),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.only(top: 90),
-          child: Icon(Icons.grain_rounded, size: 38, color: cor),
-        ),
-      ),
-    );
-  }
-}
-
-class _GaugePainter extends CustomPainter {
-  final double pct;
-  final Color cor;
-  _GaugePainter({required this.pct, required this.cor});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final centro = Offset(size.width / 2, size.height * .85);
-    final raio = math.min(size.width / 2, size.height) * .9;
-    final rect = Rect.fromCircle(center: centro, radius: raio);
-
-    final fundo = Paint()
-      ..color = AppColors.cinzaSuave
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 20
-      ..strokeCap = StrokeCap.round;
-
-    final preench = Paint()
-      ..shader = SweepGradient(
-        colors: [cor.withValues(alpha: .6), cor],
-        startAngle: math.pi,
-        endAngle: 2 * math.pi,
-      ).createShader(rect)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 20
-      ..strokeCap = StrokeCap.round;
-
-    canvas.drawArc(rect, math.pi, math.pi, false, fundo);
-    canvas.drawArc(rect, math.pi, math.pi * pct.clamp(0, 1), false, preench);
-  }
-
-  @override
-  bool shouldRepaint(covariant _GaugePainter old) =>
-      old.pct != pct || old.cor != cor;
 }
 
 class _BotaoQtd extends StatelessWidget {
